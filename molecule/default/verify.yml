@@ -25,10 +25,10 @@
           - "'dump1090-fa.service' in ansible_facts.services"
           - ansible_facts.services['dump1090-fa.service'].status == 'enabled'
 
+    # Neither service reaches a meaningful 'running' state in molecule —
+    # piaware needs a live dump1090-fa feed and FlightAware network access.
     - name: Assert piaware service is enabled
       ansible.builtin.assert:
         that:
           - "'piaware.service' in ansible_facts.services"
           - ansible_facts.services['piaware.service'].status == 'enabled'
-        # Neither service reaches a meaningful 'running' state in molecule —
-        # piaware needs a live dump1090-fa feed and FlightAware network access.
