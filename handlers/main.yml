@@ -1,0 +1,14 @@
+---
+- name: Restart dump1090-fa
+  become: true
+  ansible.builtin.systemd:
+    name: dump1090-fa
+    state: restarted
+    daemon_reload: true
+
+- name: Restart piaware
+  become: true
+  ansible.builtin.systemd:
+    name: piaware
+    state: restarted
+    daemon_reload: true

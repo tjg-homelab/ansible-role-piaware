@@ -1,0 +1,23 @@
+---
+galaxy_info:
+  role_name: piaware
+  author: rnissen
+  description: >-
+    Install and configure PiAware (dump1090-fa + piaware) for ADS-B aircraft
+    tracking on Debian 12/13, including Debian 13 Trixie via community packages
+  license: MIT
+  min_ansible_version: "2.14"
+  platforms:
+    - name: Debian
+      versions:
+        - bookworm
+        - trixie
+  galaxy_tags:
+    - adsb
+    - flightaware
+    - piaware
+    - dump1090
+    - rtlsdr
+    - aviation
+
+dependencies: []

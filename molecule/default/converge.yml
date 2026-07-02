@@ -1,0 +1,51 @@
+---
+- name: Converge
+  hosts: all
+  become: true
+  pre_tasks:
+    - name: Create /etc/default/dump1090-fa fixture
+      # Simulate the file created by the dump1090-fa package.
+      ansible.builtin.copy:
+        dest: /etc/default/dump1090-fa
+        mode: "0644"
+        force: false
+        content: |
+          # dump1090-fa configuration (molecule fixture)
+          RECEIVER_SERIAL=
+          RECEIVER_OPTIONS=
+          DECODER_OPTIONS=
+          NET_OPTIONS=
+          JSON_OPTIONS=
+
+    - name: Create stub dump1090-fa systemd unit
+      ansible.builtin.copy:
+        dest: /etc/systemd/system/dump1090-fa.service
+        mode: "0644"
+        content: |
+          [Unit]
+          Description=dump1090-fa stub (molecule)
+          [Service]
+          ExecStart=/bin/sleep infinity
+          [Install]
+          WantedBy=multi-user.target
+
+    - name: Create stub piaware systemd unit
+      ansible.builtin.copy:
+        dest: /etc/systemd/system/piaware.service
+        mode: "0644"
+        content: |
+          [Unit]
+          Description=piaware stub (molecule)
+          [Service]
+          ExecStart=/bin/sleep infinity
+          [Install]
+          WantedBy=multi-user.target
+
+    - name: Reload systemd
+      ansible.builtin.systemd:
+        daemon_reload: true
+
+  tasks:
+    - name: Include role under test
+      ansible.builtin.include_role:
+        name: "{{ lookup('env', 'MOLECULE_PROJECT_DIRECTORY') | basename }}"

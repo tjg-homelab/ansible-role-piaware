@@ -1,0 +1,34 @@
+---
+- name: Verify
+  hosts: all
+  become: true
+  tasks:
+    - name: Read /etc/default/dump1090-fa
+      ansible.builtin.slurp:
+        src: /etc/default/dump1090-fa
+      register: dump1090_config
+
+    - name: Assert RECEIVER_SERIAL is set correctly
+      ansible.builtin.assert:
+        that:
+          - "('RECEIVER_SERIAL=' + piaware_receiver_serial) in (dump1090_config.content | b64decode)"
+        fail_msg: >-
+          RECEIVER_SERIAL not set to {{ piaware_receiver_serial }}
+          in /etc/default/dump1090-fa
+
+    - name: Gather service facts
+      ansible.builtin.service_facts:
+
+    - name: Assert dump1090-fa service is enabled
+      ansible.builtin.assert:
+        that:
+          - "'dump1090-fa.service' in ansible_facts.services"
+          - ansible_facts.services['dump1090-fa.service'].status == 'enabled'
+
+    - name: Assert piaware service is enabled
+      ansible.builtin.assert:
+        that:
+          - "'piaware.service' in ansible_facts.services"
+          - ansible_facts.services['piaware.service'].status == 'enabled'
+        # Neither service reaches a meaningful 'running' state in molecule —
+        # piaware needs a live dump1090-fa feed and FlightAware network access.

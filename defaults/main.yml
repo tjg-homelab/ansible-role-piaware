@@ -1,0 +1,29 @@
+---
+# Whether to manage package installation via the community apt repo.
+# Set to false when packages are pre-installed or managed elsewhere.
+piaware_manage_packages: true
+
+# Packages to install from the abcd567a Debian 13 community repo.
+piaware_packages:
+  - piaware
+  - dump1090-fa
+  - piaware-web
+
+# URLs for the community apt repo (abcd567a Debian 13 builds).
+# FlightAware has not released official Trixie packages; these community
+# builds fill the gap. Remove/override when official packages ship.
+piaware_apt_key_url: "https://abcd567a.github.io/debian13/KEY2.gpg"
+piaware_apt_key_dest: "/etc/apt/keyrings/abcd567a-key.gpg"
+piaware_apt_list_url: "https://abcd567a.github.io/debian13/abcd567a.list"
+piaware_apt_list_dest: "/etc/apt/sources.list.d/abcd567a.list"
+
+# Remove the community apt repository after installing packages, per upstream
+# recommendation, so it cannot conflict with future official FlightAware
+# packages. Set to false to keep the repo configured for apt upgrades.
+piaware_remove_apt_repo: true
+
+# Serial number of the RTL-SDR dongle dedicated to 1090 MHz ADS-B.
+# Only needed on hosts with multiple dongles; leave empty to let
+# dump1090-fa pick the first available device.
+# Assign a serial to a dongle with: rtl_eeprom -s <serial>
+piaware_receiver_serial: ""

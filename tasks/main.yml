@@ -1,0 +1,71 @@
+---
+- name: "Piaware : Install from community apt repo"
+  when: piaware_manage_packages
+  block:
+    - name: "Piaware : Add abcd567a GPG key"
+      become: true
+      ansible.builtin.get_url:
+        url: "{{ piaware_apt_key_url }}"
+        dest: "{{ piaware_apt_key_dest }}"
+        mode: "0644"
+
+    - name: "Piaware : Add abcd567a apt repository"
+      become: true
+      ansible.builtin.get_url:
+        url: "{{ piaware_apt_list_url }}"
+        dest: "{{ piaware_apt_list_dest }}"
+        mode: "0644"
+
+    - name: "Piaware : Update apt cache"
+      become: true
+      ansible.builtin.apt:
+        update_cache: true
+
+    - name: "Piaware : Install piaware packages"
+      become: true
+      ansible.builtin.apt:
+        name: "{{ piaware_packages }}"
+        state: present
+
+    - name: "Piaware : Remove community apt repository"
+      # Upstream recommendation: remove the repo after install to avoid
+      # conflicts when FlightAware eventually ships official packages.
+      become: true
+      when: piaware_remove_apt_repo
+      ansible.builtin.file:
+        path: "{{ piaware_apt_list_dest }}"
+        state: absent
+
+    - name: "Piaware : Update apt cache after removing community repo"
+      become: true
+      when: piaware_remove_apt_repo
+      ansible.builtin.apt:
+        update_cache: true
+
+- name: "Piaware : Set RECEIVER_SERIAL in dump1090-fa config"
+  become: true
+  when: piaware_receiver_serial | length > 0
+  ansible.builtin.lineinfile:
+    path: /etc/default/dump1090-fa
+    regexp: '^RECEIVER_SERIAL='
+    line: "RECEIVER_SERIAL={{ piaware_receiver_serial }}"
+    create: false
+  notify:
+    - Restart dump1090-fa
+    - Restart piaware
+
+- name: "Piaware : Enable and start dump1090-fa"
+  become: true
+  ansible.builtin.systemd:
+    name: dump1090-fa
+    enabled: true
+    state: started
+    daemon_reload: true
+
+- name: "Piaware : Enable and start piaware"
+  become: true
+  ansible.builtin.systemd:
+    name: piaware
+    enabled: true
+    state: started
+    daemon_reload: true
