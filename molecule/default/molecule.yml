@@ -32,9 +32,16 @@ provisioner:
       all:
         ansible_user: root
         ansible_python_interpreter: /usr/bin/python3
-        # Skip package install in molecule — no external apt repo or
-        # RTL-SDR hardware available in the test containers.
-        piaware_manage_packages: false
+        # Exercise the AN-79 idempotence gate. The community-repo block can't be
+        # run for real in a container (no external repo, no RTL-SDR hardware), but
+        # the gate that keeps it idempotent can: point piaware_packages at a
+        # package the base image already has, so package_facts finds it and the
+        # whole add/install/remove sequence is skipped — exactly the steady state
+        # on a converged host. A regression that dropped the gate would run the
+        # block here and fail the idempotence step on the always-changed apt cache.
+        piaware_manage_packages: true
+        piaware_packages:
+          - bash
         piaware_receiver_serial: "TEST123"
 verifier:
   name: ansible

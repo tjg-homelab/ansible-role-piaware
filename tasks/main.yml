@@ -1,6 +1,24 @@
 ---
-- name: "Piaware : Install from community apt repo"
+# The community-repo install is a one-time bootstrap: add the abcd567a repo,
+# install the packages, then remove the repo again (upstream recommendation, so
+# it cannot conflict with future official FlightAware packages). Because the repo
+# is deliberately removed at the end, re-running the whole sequence on every
+# converge is impossible to make idempotent: "add repo" re-creates the .list file
+# the previous run deleted, "remove repo" deletes it again, and both apt-cache
+# updates always report changed — four churned tasks per run for no net change
+# (AN-79). Gate the sequence on the packages actually being missing, so a
+# converged host skips it and reports ok. package_facts is read-only (reports
+# ok), so it adds no churn of its own.
+- name: "Piaware : Gather installed package facts"
+  become: true
   when: piaware_manage_packages
+  ansible.builtin.package_facts:
+    manager: auto
+
+- name: "Piaware : Install from community apt repo"
+  when:
+    - piaware_manage_packages
+    - piaware_packages | reject('in', ansible_facts.packages | default({})) | list | length > 0
   block:
     - name: "Piaware : Add abcd567a GPG key"
       become: true
